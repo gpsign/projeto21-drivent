@@ -1,6 +1,6 @@
 import { Address, Enrollment } from "@prisma/client";
 import { request } from "@/utils/request";
-import { invalidDataError, notFoundError, requestError } from "@/errors";
+import { invalidDataError, requestError } from "@/errors";
 import {
 	addressRepository,
 	CreateAddressParams,
@@ -10,13 +10,13 @@ import {
 import { exclude } from "@/utils/prisma-utils";
 
 async function getAddressFromCEP(CEP: string) {
-	if (CEP.length != 8 || isNaN(Number(CEP))) throw invalidDataError("Zip Code");
+	if (CEP.length != 8 || isNaN(Number(CEP))) throw invalidDataError("CEP");
 
 	const result = await request.get(`${process.env.VIA_CEP_API}/${CEP}/json/`);
 
 	console.log(result.data.erro);
 
-	if (result.data.erro) throw requestError(400, "Non-existent Zip Code");
+	if (result.data.erro) throw invalidDataError("CEP");
 
 	const addres = {
 		cidade: result.data.localidade,
@@ -35,7 +35,7 @@ async function getOneWithAddressByUserId(
 	const enrollmentWithAddress =
 		await enrollmentRepository.findWithAddressByUserId(userId);
 
-	if (!enrollmentWithAddress) throw invalidDataError("Not Found");
+	if (!enrollmentWithAddress) throw invalidDataError("CEP");
 
 	const [firstAddress] = enrollmentWithAddress.Address;
 	const address = getFirstAddress(firstAddress);
@@ -76,8 +76,7 @@ async function createOrUpdateEnrollmentWithAddress(
 	const address = getAddressForUpsert(params.address);
 
 	// TODO - Verificar se o CEP é válido antes de associar ao enrollment.
-	if (params.address.cep.length != 8 || isNaN(Number(params.address.cep)))
-		throw invalidDataError("Zip Code");
+	await getAddressFromCEP(params.address.cep);
 
 	const newEnrollment = await enrollmentRepository.upsert(
 		params.userId,
