@@ -5,11 +5,15 @@ import { addressRepository, CreateAddressParams, enrollmentRepository, CreateEnr
 import { exclude } from '@/utils/prisma-utils';
 
 async function getAddressFromCEP(CEP: string) {
-  if (CEP.length != 8 || isNaN(Number(CEP))) throw invalidDataError('CEP');
+  let CEPfilter = '';
 
-  const result = await request.get(`${process.env.VIA_CEP_API}/${CEP}/json/`);
+  for (let i = 0; i < CEP.length; i++) {
+    if (CEP[i] != '-') CEPfilter += CEP[i];
+  }
 
-  console.log(result.data.erro);
+  if (CEPfilter.length != 8 || isNaN(Number(CEPfilter))) throw invalidDataError('CEP');
+
+  const result = await request.get(`${process.env.VIA_CEP_API}/${CEPfilter}/json/`);
 
   if (result.data.erro) throw invalidDataError('CEP');
 
