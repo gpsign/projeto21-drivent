@@ -35,7 +35,7 @@ async function getOneWithAddressByUserId(
 	const enrollmentWithAddress =
 		await enrollmentRepository.findWithAddressByUserId(userId);
 
-	if (!enrollmentWithAddress) throw requestError(400, "Address not found");
+	if (!enrollmentWithAddress) throw invalidDataError("Not Found");
 
 	const [firstAddress] = enrollmentWithAddress.Address;
 	const address = getFirstAddress(firstAddress);
