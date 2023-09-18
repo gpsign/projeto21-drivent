@@ -18,7 +18,6 @@ async function getAddressFromCEP(CEP: string) {
 
 	if (result.data.erro) throw requestError(400, "Non-existent Zip Code");
 
-	// FIXME: não estamos interessados em todos os campos
 	const addres = {
 		cidade: result.data.localidade,
 		bairro: result.data.bairro,
@@ -36,7 +35,7 @@ async function getOneWithAddressByUserId(
 	const enrollmentWithAddress =
 		await enrollmentRepository.findWithAddressByUserId(userId);
 
-	if (!enrollmentWithAddress) throw notFoundError();
+	if (!enrollmentWithAddress) throw requestError(400, "Address not found");
 
 	const [firstAddress] = enrollmentWithAddress.Address;
 	const address = getFirstAddress(firstAddress);
