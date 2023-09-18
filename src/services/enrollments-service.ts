@@ -1,6 +1,6 @@
 import { Address, Enrollment } from '@prisma/client';
 import { request } from '@/utils/request';
-import { invalidDataError, requestError } from '@/errors';
+import { invalidDataError } from '@/errors';
 import { addressRepository, CreateAddressParams, enrollmentRepository, CreateEnrollmentParams } from '@/repositories';
 import { exclude } from '@/utils/prisma-utils';
 
@@ -8,10 +8,11 @@ async function getAddressFromCEP(CEP: string) {
   let CEPfilter = '';
 
   for (let i = 0; i < CEP.length; i++) {
-    if (CEP[i] != '-') CEPfilter += CEP[i];
+    if (CEP[i] === '-' || isNaN(Number(CEP[i]))) continue;
+    else CEPfilter += CEP[i];
   }
 
-  if (CEPfilter.length != 8 || isNaN(Number(CEPfilter))) throw invalidDataError('CEP');
+  if (CEPfilter.length != 8) throw invalidDataError('CEP');
 
   const result = await request.get(`${process.env.VIA_CEP_API}/${CEPfilter}/json/`);
 
