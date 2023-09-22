@@ -5,7 +5,7 @@ import { cleanDb } from '../helpers';
 import { init } from '@/app';
 import { prisma } from '@/config';
 import { userService } from '@/services';
-import { duplicatedEmailError } from '@/errors/duplicate-email-error';
+import { duplicatedEmailError } from '@/errors';
 
 beforeAll(async () => {
   await init();
