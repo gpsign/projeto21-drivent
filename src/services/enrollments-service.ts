@@ -1,6 +1,7 @@
 import { Address, Enrollment } from '@prisma/client';
 import { request } from '@/utils/request';
-import { enrollmentNotFoundError, invalidCepError } from '@/errors';
+import { enrollmentNotFoundError } from '@/errors/enrollment-not-found-error';
+import { invalidCepError } from '@/errors/invalid-cep-error';
 import { addressRepository, CreateAddressParams, enrollmentRepository, CreateEnrollmentParams } from '@/repositories';
 import { exclude } from '@/utils/prisma-utils';
 import { AddressEnrollment } from '@/protocols';
