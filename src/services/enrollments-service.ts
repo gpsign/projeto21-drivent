@@ -5,6 +5,7 @@ import { invalidCepError } from '@/errors/invalid-cep-error';
 import { addressRepository, CreateAddressParams, enrollmentRepository, CreateEnrollmentParams } from '@/repositories';
 import { exclude } from '@/utils/prisma-utils';
 import { AddressEnrollment } from '@/protocols';
+import { notFoundError } from '@/errors';
 
 async function getAddressFromCEP(cep: string): Promise<AddressEnrollment> {
   const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
@@ -41,6 +42,14 @@ async function getOneWithAddressByUserId(userId: number): Promise<GetOneWithAddr
 
 type GetOneWithAddressByUserIdResult = Omit<Enrollment, 'userId' | 'createdAt' | 'updatedAt'>;
 
+async function getEnrollmentIdByUserId(userId: number): Promise<GetIdByUserIdResult> {
+  const enrollment = await enrollmentRepository.findIdByUserId(userId);
+  if (!enrollment) throw notFoundError();
+  return enrollment;
+}
+
+type GetIdByUserIdResult = Pick<Enrollment, 'id'>;
+
 function getFirstAddress(firstAddress: Address): GetAddressResult {
   if (!firstAddress) return null;
 
@@ -74,6 +83,7 @@ export type CreateOrUpdateEnrollmentWithAddress = CreateEnrollmentParams & {
 
 export const enrollmentsService = {
   getOneWithAddressByUserId,
+  getEnrollmentIdByUserId,
   createOrUpdateEnrollmentWithAddress,
   getAddressFromCEP,
 };

@@ -51,7 +51,7 @@ model Enrollment {
   Address   Address[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  Ticket    Ticket?  
+  Ticket    Ticket?
 }
 
 model Address {
@@ -86,7 +86,7 @@ model Ticket {
   TicketType   TicketType   @relation(fields: [ticketTypeId], references: [id])
   enrollmentId Int          @unique
   Enrollment   Enrollment   @relation(fields: [enrollmentId], references: [id])
-  status       TicketStatus
+  status       TicketStatus @default(RESERVED)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   Payment      Payment?
