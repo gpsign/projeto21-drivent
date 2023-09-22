@@ -12,8 +12,16 @@ async function findTicketByEnrollmentId(enrollmentId: number) {
   return prisma.ticket.findUnique({ where: { enrollmentId }, include: { TicketType: true } });
 }
 
+async function findTicketById(id: number) {
+  return prisma.ticket.findUnique({ where: { id }, include: { TicketType: true } });
+}
+
 async function findManyTicketTypes() {
   return prisma.ticketType.findMany();
+}
+
+async function setTicketPaid(id: number) {
+  return prisma.ticket.update({ where: { id }, data: { status: 'PAID' }, include: { TicketType: true } });
 }
 
 export type CreateTicketParams = Omit<Ticket, 'id' | 'createdAt' | 'status'>;
@@ -22,4 +30,10 @@ export type CreateTicketIncompleteBody = {
   userId?: number;
 };
 
-export const ticketRepository = { createTicket, findTicketByEnrollmentId, findManyTicketTypes };
+export const ticketRepository = {
+  createTicket,
+  findTicketByEnrollmentId,
+  findTicketById,
+  findManyTicketTypes,
+  setTicketPaid,
+};
