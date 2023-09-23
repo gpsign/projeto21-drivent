@@ -5,6 +5,10 @@ async function insertPayment(payment: CreatePayment) {
   return prisma.payment.create({ data: payment });
 }
 
+async function findPaymentByTicketId(ticketId: number) {
+  return prisma.payment.findUnique({ where: { ticketId } });
+}
+
 export type CreatePayment = Omit<Payment, 'id' | 'createdAt'>;
 export type IncompleteCreatePayment = Omit<CreatePayment, 'updatedAt'>;
 
@@ -22,4 +26,5 @@ export type PaymentRequestBody = {
 
 export const paymentRepository = {
   insertPayment,
+  findPaymentByTicketId,
 };

@@ -1,4 +1,4 @@
-import { notFoundError, unauthorizedError } from '@/errors';
+import { invalidCredentialsError, invalidDataError, notFoundError, unauthorizedError } from '@/errors';
 import { CreatePayment, PaymentRequestBody, paymentRepository } from '@/repositories/payments-repository';
 import { ticketRepository } from '@/repositories/tickets-repository';
 import { enrollmentRepository } from '@/repositories';
@@ -26,6 +26,20 @@ async function createPayment(p: PaymentRequestBody & { userId: number }) {
   return result;
 }
 
+async function getPayment(p: { ticketId: number; userId: number }) {
+  if (p.ticketId === null || isNaN(p.ticketId)) throw invalidDataError('Ticket ID');
+  const enrollment = await enrollmentRepository.findIdByUserId(p.userId);
+  const payment = await paymentRepository.findPaymentByTicketId(p.ticketId);
+  const ticket = await ticketRepository.findTicketById(p.ticketId);
+  if (!ticket) throw notFoundError();
+
+  if (!payment) throw unauthorizedError();
+
+  if (ticket.enrollmentId != enrollment.id) throw unauthorizedError();
+  return payment;
+}
+
 export const paymentService = {
   createPayment,
+  getPayment,
 };
