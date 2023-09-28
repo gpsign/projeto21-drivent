@@ -9,7 +9,7 @@ async function getAll() {
 async function getHotelById(id: number) {
   if (id < 1 || isNaN(id)) throw invalidDataError('Hotel ID');
   const hotel = await hotelRepository.findById(id);
-  if (!hotel) throw notFoundError();
+  if (hotel === null) throw notFoundError();
   return hotel;
 }
 

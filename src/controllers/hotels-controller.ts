@@ -9,7 +9,7 @@ export async function getAllHotels(req: AuthenticatedRequest, res: Response) {
 }
 
 export async function getHotelById(req: AuthenticatedRequest, res: Response) {
-  const hotelId = Number(req.params.id) as number;
+  const hotelId = Number(req.params.hotelId) as number;
   const result = await hotelService.getHotelById(hotelId);
 
   return res.status(httpStatus.OK).send(result);
