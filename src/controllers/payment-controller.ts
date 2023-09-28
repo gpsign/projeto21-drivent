@@ -3,7 +3,6 @@ import httpStatus from 'http-status';
 import { paymentService } from '@/services/payments-service';
 import { AuthenticatedRequest } from '@/middlewares';
 import { PaymentRequestBody } from '@/repositories/payments-repository';
-import { Payment } from '@prisma/client';
 
 export async function postPayment(req: AuthenticatedRequest, res: Response) {
   const payment = req.body as PaymentRequestBody & { userId: number };
