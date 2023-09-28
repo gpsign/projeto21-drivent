@@ -51,8 +51,8 @@ async function getEnrollmentIdByUserId(userId: number): Promise<GetIdByUserIdRes
 type GetIdByUserIdResult = Pick<Enrollment, 'id'>;
 
 async function getEnrollmentWithTicketbyUserId(userId: number) {
-  const enrollment = await enrollmentRepository.findWithTicketById(userId);
-  if (!enrollment) throw notFoundError();
+  const enrollment = await enrollmentRepository.findWithTicketByUserId(userId);
+  if (enrollment === null) throw notFoundError();
   if (enrollment.Ticket === null) throw notFoundError();
   return enrollment;
 }

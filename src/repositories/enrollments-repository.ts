@@ -17,9 +17,9 @@ async function findIdByUserId(userId: number) {
   });
 }
 
-async function findWithTicketById(id: number) {
+async function findWithTicketByUserId(userId: number) {
   return prisma.enrollment.findUnique({
-    where: { id },
+    where: { userId },
     select: {
       id: true,
       birthday: true,
@@ -52,5 +52,5 @@ export const enrollmentRepository = {
   findWithAddressByUserId,
   findIdByUserId,
   upsert,
-  findWithTicketById,
+  findWithTicketByUserId,
 };
