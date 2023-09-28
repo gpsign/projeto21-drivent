@@ -50,6 +50,13 @@ async function getEnrollmentIdByUserId(userId: number): Promise<GetIdByUserIdRes
 
 type GetIdByUserIdResult = Pick<Enrollment, 'id'>;
 
+async function getEnrollmentWithTicketbyUserId(userId: number) {
+  const enrollment = await enrollmentRepository.findWithTicketById(userId);
+  if (!enrollment) throw notFoundError();
+  if (enrollment.Ticket === null) throw notFoundError();
+  return enrollment;
+}
+
 function getFirstAddress(firstAddress: Address): GetAddressResult {
   if (!firstAddress) return null;
 
@@ -86,4 +93,5 @@ export const enrollmentsService = {
   getEnrollmentIdByUserId,
   createOrUpdateEnrollmentWithAddress,
   getAddressFromCEP,
+  getEnrollmentWithTicketbyUserId,
 };
