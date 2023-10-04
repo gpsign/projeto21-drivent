@@ -171,7 +171,7 @@ describe('POST /booking', () => {
 
         const response = await server.post('/booking').send(body).set('Authorization', `Bearer ${token}`);
 
-        expect(response.status).toBe(httpStatus.CREATED);
+        expect(response.status).toBe(httpStatus.OK);
         expect(response.body).toEqual({ bookingId: expect.any(Number) });
       });
     });
