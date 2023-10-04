@@ -493,3 +493,154 @@ describe('changeBooking', () => {
     expect(result).toEqual({ bookingId: 1 });
   });
 });
+
+describe('validateUserBooking', () => {
+  it('should throw ForbiddenError if user has no enrollment', async () => {
+    jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockImplementationOnce(async () => {
+      return null;
+    });
+
+    const prom = bookingService.validateUserBooking(1);
+    expect(prom).rejects.toEqual({ name: 'ForbiddenError', message: 'User does not have an enrollment' });
+  });
+
+  it('should throw ForbiddenError if user has no ticket', async () => {
+    jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockImplementationOnce(async () => {
+      return {
+        id: 1,
+        cpf: '1234567890',
+        birthday: new Date(),
+        phone: '1234567890',
+        userId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        Ticket: null,
+        Address: [],
+        name: 'abcd',
+      };
+    });
+    jest.spyOn(ticketsRepository, 'findTicketByEnrollmentId').mockImplementationOnce(async () => {
+      return null;
+    });
+
+    const prom = bookingService.validateUserBooking(1);
+    expect(prom).rejects.toEqual({ name: 'ForbiddenError', message: 'User does not have a ticket' });
+  });
+
+  it('should throw ForbiddenError if user has remote ticket', async () => {
+    jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockImplementationOnce(async () => {
+      return {
+        id: 1,
+        cpf: '1234567890',
+        birthday: new Date(),
+        phone: '1234567890',
+        userId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        Ticket: null,
+        Address: [],
+        name: 'abcd',
+      };
+    });
+    jest.spyOn(ticketsRepository, 'findTicketByEnrollmentId').mockImplementationOnce(async () => {
+      return {
+        createdAt: new Date(),
+        enrollmentId: 1,
+        id: 1,
+        status: 'PAID',
+        ticketTypeId: 1,
+        updatedAt: new Date(),
+        TicketType: {
+          createdAt: new Date(),
+          id: 1,
+          includesHotel: true,
+          isRemote: true,
+          name: 'abcd',
+          price: 10,
+          updatedAt: new Date(),
+        },
+      };
+    });
+
+    const prom = bookingService.validateUserBooking(1);
+    expect(prom).rejects.toEqual({ name: 'ForbiddenError', message: 'User ticket type does not allow booking' });
+  });
+
+  it('should throw ForbiddenError if user ticket does not includes hotel', async () => {
+    jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockImplementationOnce(async () => {
+      return {
+        id: 1,
+        cpf: '1234567890',
+        birthday: new Date(),
+        phone: '1234567890',
+        userId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        Ticket: null,
+        Address: [],
+        name: 'abcd',
+      };
+    });
+    jest.spyOn(ticketsRepository, 'findTicketByEnrollmentId').mockImplementationOnce(async () => {
+      return {
+        createdAt: new Date(),
+        enrollmentId: 1,
+        id: 1,
+        status: 'PAID',
+        ticketTypeId: 1,
+        updatedAt: new Date(),
+        TicketType: {
+          createdAt: new Date(),
+          id: 1,
+          includesHotel: false,
+          isRemote: false,
+          name: 'abcd',
+          price: 10,
+          updatedAt: new Date(),
+        },
+      };
+    });
+
+    const prom = bookingService.validateUserBooking(1);
+    expect(prom).rejects.toEqual({ name: 'ForbiddenError', message: 'User ticket type does not allow booking' });
+  });
+
+  it('should throw ForbiddenError if user ticket is not paid', async () => {
+    jest.spyOn(enrollmentRepository, 'findWithAddressByUserId').mockImplementationOnce(async () => {
+      return {
+        id: 1,
+        cpf: '1234567890',
+        birthday: new Date(),
+        phone: '1234567890',
+        userId: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        Ticket: null,
+        Address: [],
+        name: 'abcd',
+      };
+    });
+    jest.spyOn(ticketsRepository, 'findTicketByEnrollmentId').mockImplementationOnce(async () => {
+      return {
+        createdAt: new Date(),
+        enrollmentId: 1,
+        id: 1,
+        status: 'RESERVED',
+        ticketTypeId: 1,
+        updatedAt: new Date(),
+        TicketType: {
+          createdAt: new Date(),
+          id: 1,
+          includesHotel: true,
+          isRemote: false,
+          name: 'abcd',
+          price: 10,
+          updatedAt: new Date(),
+        },
+      };
+    });
+
+    const prom = bookingService.validateUserBooking(1);
+    expect(prom).rejects.toEqual({ name: 'ForbiddenError', message: 'User ticket type does not allow booking' });
+  });
+});
