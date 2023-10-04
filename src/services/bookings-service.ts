@@ -1,21 +1,43 @@
-import { bookingRepository } from '@/repositories';
-import { forbiddenError, notFoundError } from '@/errors';
+import { TicketStatus } from '@prisma/client';
+import { bookingRepository, enrollmentRepository, ticketsRepository } from '@/repositories';
+import { forbiddenError, invalidDataError, notFoundError } from '@/errors';
 
 type CreateBookingInput = {
   roomId: number;
   userId: number;
 };
 
+type UpdateBooking = {
+  bookingId: number;
+  roomId: number;
+  userId: number;
+};
+
+async function validateUserBooking(userId: number) {
+  const enrollment = await enrollmentRepository.findWithAddressByUserId(userId);
+  if (!enrollment) throw forbiddenError('User does not have an enrollment');
+
+  const ticket = await ticketsRepository.findTicketByEnrollmentId(enrollment.id);
+  if (!ticket) throw forbiddenError('User does not have a ticket');
+
+  const type = ticket.TicketType;
+
+  if (ticket.status === TicketStatus.RESERVED || type.isRemote || !type.includesHotel) {
+    throw forbiddenError('User ticket type does not allow booking');
+  }
+}
+
 async function createBooking(params: CreateBookingInput) {
   const { roomId, userId } = params;
 
-  if (isNaN(roomId) || roomId < 1) throw forbiddenError('Invalid Room ID');
-  if (isNaN(userId) || userId < 1) throw forbiddenError('Invalid User ID');
+  if (isNaN(roomId) || roomId < 1) throw invalidDataError('roomId');
+
+  await validateUserBooking(userId);
 
   const room = await findRoomCapacityByIdOrThrow(roomId);
-  const peopleCount = await bookingRepository.getCountOfPeopleInRoom(roomId);
-
-  if (peopleCount._count.userId >= room.capacity) throw forbiddenError('Room is full');
+  const countResponse = await bookingRepository.getCountOfPeopleInRoom(roomId);
+  const peopleCount = countResponse._count.userId;
+  if (peopleCount >= room.capacity) throw forbiddenError('Room is full');
 
   const createdBooking = await bookingRepository.createBooking(roomId, userId);
 
@@ -34,4 +56,31 @@ async function findRoomCapacityByIdOrThrow(id: number) {
   return room;
 }
 
-export const bookingService = { createBooking, getUserBooking, findRoomCapacityByIdOrThrow };
+async function changeBooking(params: UpdateBooking) {
+  const { bookingId, roomId, userId } = params;
+
+  if (isNaN(roomId) || roomId < 1) throw invalidDataError('roomId');
+  if (isNaN(bookingId) || bookingId < 1) throw invalidDataError('bookingId');
+
+  const booking = await bookingRepository.getBookingById(bookingId);
+  if (!booking) throw forbiddenError('No booking');
+  if (booking.userId != userId) throw forbiddenError("Not user's booking");
+
+  const room = await bookingService.findRoomCapacityByIdOrThrow(roomId);
+  const countResponse = await bookingRepository.getCountOfPeopleInRoom(roomId);
+  const peopleCount = countResponse._count.userId;
+  if (peopleCount >= room.capacity) throw forbiddenError('Room is full');
+
+  const updatedBooking = await bookingRepository.updateBooking(bookingId, roomId);
+  return {
+    bookingId: updatedBooking.id,
+  };
+}
+
+export const bookingService = {
+  createBooking,
+  getUserBooking,
+  findRoomCapacityByIdOrThrow,
+  changeBooking,
+  validateUserBooking,
+};
