@@ -1,12 +1,15 @@
 import { cleanDb } from '../helpers';
+import { createUser } from '../factories';
+import { createHotel, createRoomWithHotelId } from '../factories/hotels-factory';
 import { bookingRepository } from '@/repositories';
 import { init } from '@/app';
 import { bookingService } from '@/services';
-import { createUser } from '../factories';
-import { createHotel, createRoomWithHotelId } from '../factories/hotels-factory';
 
 beforeAll(async () => {
   await init();
+});
+
+beforeEach(async () => {
   await cleanDb();
 });
 
