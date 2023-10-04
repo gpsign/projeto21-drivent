@@ -11,10 +11,9 @@ import {
   ticketsRouter,
   paymentsRouter,
   hotelsRouter,
+  bookingsRouter,
 } from '@/routers';
 import { loadEnv, connectDb, disconnectDB } from '@/config';
-// import { paymentService } from './services/payments-service';
-// import { PaymentRequestBody } from './repositories';
 
 loadEnv();
 
@@ -30,6 +29,7 @@ app
   .use('/tickets', ticketsRouter)
   .use('/payments', paymentsRouter)
   .use('/hotels', hotelsRouter)
+  .use('/booking', bookingsRouter)
   .use(handleApplicationErrors);
 
 export function init(): Promise<Express> {
@@ -40,18 +40,5 @@ export function init(): Promise<Express> {
 export async function close(): Promise<void> {
   await disconnectDB();
 }
-
-// (async () => {
-//   const pay: PaymentRequestBody & { userId: number } = {
-//     cardData: {
-//       cvv: 999,
-//       expirationDate: new Date('2023-09-23'),
-//       issuer: 'MASTER',
-//       name: 'Gabriel',
-//       number: 12312321,
-//     },
-//   };
-//   await paymentService.createPayment();
-// })();
 
 export default app;

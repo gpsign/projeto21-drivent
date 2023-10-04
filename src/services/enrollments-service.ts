@@ -1,11 +1,9 @@
 import { Address, Enrollment } from '@prisma/client';
 import { request } from '@/utils/request';
-import { enrollmentNotFoundError } from '@/errors/enrollment-not-found-error';
-import { invalidCepError } from '@/errors/invalid-cep-error';
+import { enrollmentNotFoundError, invalidCepError } from '@/errors';
 import { addressRepository, CreateAddressParams, enrollmentRepository, CreateEnrollmentParams } from '@/repositories';
 import { exclude } from '@/utils/prisma-utils';
 import { AddressEnrollment } from '@/protocols';
-import { notFoundError } from '@/errors';
 
 async function getAddressFromCEP(cep: string): Promise<AddressEnrollment> {
   const result = await request.get(`${process.env.VIA_CEP_API}/${cep}/json/`);
@@ -42,21 +40,6 @@ async function getOneWithAddressByUserId(userId: number): Promise<GetOneWithAddr
 
 type GetOneWithAddressByUserIdResult = Omit<Enrollment, 'userId' | 'createdAt' | 'updatedAt'>;
 
-async function getEnrollmentIdByUserId(userId: number): Promise<GetIdByUserIdResult> {
-  const enrollment = await enrollmentRepository.findIdByUserId(userId);
-  if (!enrollment) throw notFoundError();
-  return enrollment;
-}
-
-type GetIdByUserIdResult = Pick<Enrollment, 'id'>;
-
-async function getEnrollmentWithTicketbyUserId(userId: number) {
-  const enrollment = await enrollmentRepository.findWithTicketByUserId(userId);
-  if (enrollment === null) throw notFoundError();
-  if (enrollment.Ticket === null) throw notFoundError();
-  return enrollment;
-}
-
 function getFirstAddress(firstAddress: Address): GetAddressResult {
   if (!firstAddress) return null;
 
@@ -90,8 +73,6 @@ export type CreateOrUpdateEnrollmentWithAddress = CreateEnrollmentParams & {
 
 export const enrollmentsService = {
   getOneWithAddressByUserId,
-  getEnrollmentIdByUserId,
   createOrUpdateEnrollmentWithAddress,
   getAddressFromCEP,
-  getEnrollmentWithTicketbyUserId,
 };

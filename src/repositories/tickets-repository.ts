@@ -1,39 +1,56 @@
-import { Ticket } from '@prisma/client';
+import { TicketStatus } from '@prisma/client';
 import { prisma } from '@/config';
+import { CreateTicketParams } from '@/protocols';
 
-async function createTicket(data: CreateTicketParams) {
-  return prisma.ticket.create({
-    data,
-    include: { TicketType: true },
-  });
+async function findTicketTypes() {
+  const result = await prisma.ticketType.findMany();
+  return result;
 }
 
 async function findTicketByEnrollmentId(enrollmentId: number) {
-  return prisma.ticket.findUnique({ where: { enrollmentId }, include: { TicketType: true } });
+  const result = await prisma.ticket.findUnique({
+    where: { enrollmentId },
+    include: { TicketType: true },
+  });
+
+  return result;
 }
 
-async function findTicketById(id: number) {
-  return prisma.ticket.findUnique({ where: { id }, include: { TicketType: true } });
+async function createTicket(ticket: CreateTicketParams) {
+  const result = await prisma.ticket.create({
+    data: ticket,
+    include: { TicketType: true },
+  });
+
+  return result;
 }
 
-async function findManyTicketTypes() {
-  return prisma.ticketType.findMany();
+async function findTicketById(ticketId: number) {
+  const result = await prisma.ticket.findUnique({
+    where: { id: ticketId },
+    include: { TicketType: true },
+  });
+
+  return result;
 }
 
-async function setTicketPaid(id: number) {
-  return prisma.ticket.update({ where: { id }, data: { status: 'PAID' }, include: { TicketType: true } });
+async function ticketProcessPayment(ticketId: number) {
+  const result = prisma.ticket.update({
+    where: {
+      id: ticketId,
+    },
+    data: {
+      status: TicketStatus.PAID,
+    },
+  });
+
+  return result;
 }
 
-export type CreateTicketParams = Omit<Ticket, 'id' | 'createdAt' | 'status'>;
-export type CreateTicketIncompleteBody = {
-  ticketTypeId: number;
-  userId?: number;
-};
-
-export const ticketRepository = {
-  createTicket,
+export const ticketsRepository = {
+  findTicketTypes,
   findTicketByEnrollmentId,
+  createTicket,
   findTicketById,
-  findManyTicketTypes,
-  setTicketPaid,
+  ticketProcessPayment,
 };

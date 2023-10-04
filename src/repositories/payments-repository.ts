@@ -1,30 +1,25 @@
-import { Payment } from '@prisma/client';
 import { prisma } from '@/config';
-
-async function insertPayment(payment: CreatePayment) {
-  return prisma.payment.create({ data: payment });
-}
+import { PaymentParams } from '@/protocols';
 
 async function findPaymentByTicketId(ticketId: number) {
-  return prisma.payment.findUnique({ where: { ticketId } });
+  const result = await prisma.payment.findFirst({
+    where: { ticketId },
+  });
+  return result;
 }
 
-export type CreatePayment = Omit<Payment, 'id' | 'createdAt'>;
-export type IncompleteCreatePayment = Omit<CreatePayment, 'updatedAt'>;
+async function createPayment(ticketId: number, params: PaymentParams) {
+  const result = await prisma.payment.create({
+    data: {
+      ticketId,
+      ...params,
+    },
+  });
 
-export type CardData = {
-  issuer: string;
-  number: number;
-  name: string;
-  expirationDate: Date;
-  cvv: number;
-};
-export type PaymentRequestBody = {
-  ticketId: number;
-  cardData: CardData;
-};
+  return result;
+}
 
-export const paymentRepository = {
-  insertPayment,
+export const paymentsRepository = {
   findPaymentByTicketId,
+  createPayment,
 };
