@@ -116,3 +116,30 @@ describe('getUserBooking', () => {
     });
   });
 });
+
+describe('findRoomCapacityOrThrow', () => {
+  it('should throw NotFoundError if room was not found', async () => {
+    jest.spyOn(bookingRepository, 'getRoomCapacityById').mockImplementationOnce(async () => {
+      return null;
+    });
+
+    const prom = bookingService.findRoomCapacityByIdOrThrow(1);
+
+    expect(prom).rejects.toEqual({ name: 'NotFoundError', message: 'No result for this search!' });
+  });
+
+  it('should return room id and capacity', async () => {
+    jest.spyOn(bookingRepository, 'getRoomCapacityById').mockImplementationOnce(async () => {
+      return {
+        id: 1,
+        capacity: 3,
+      };
+    });
+
+    const booking = await bookingService.findRoomCapacityByIdOrThrow(1);
+    expect(booking).toEqual({
+      id: 1,
+      capacity: 3,
+    });
+  });
+});
