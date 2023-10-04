@@ -5,7 +5,7 @@ async function createBooking(roomId: number, userId: number) {
 }
 
 async function getBookingByUserId(userId: number) {
-  return prisma.booking.findUnique({ where: { userId }, include: { Room: true } });
+  return prisma.booking.findUnique({ where: { userId }, select: { id: true, Room: true } });
 }
 
 async function getCountOfPeopleInRoom(roomId: number) {

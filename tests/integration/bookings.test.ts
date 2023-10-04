@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 import * as jwt from 'jsonwebtoken';
 import { faker } from '@faker-js/faker';
 import { cleanDb, generateValidToken } from '../helpers';
-import { createUser, createHotel, createRoomWithHotelId, makeRoomFull } from '../factories';
+import { createUser, createHotel, createRoomWithHotelId, makeRoomFull, createBooking } from '../factories';
 import app, { init } from '@/app';
 
 beforeAll(async () => {
@@ -92,6 +92,61 @@ describe('POST /booking', () => {
 
         expect(response.status).toBe(httpStatus.CREATED);
         expect(response.body).toEqual({ bookingId: expect.any(Number) });
+      });
+    });
+  });
+});
+
+describe('GET /booking', () => {
+  it('should respond with status 401 if no token is given', async () => {
+    const response = await server.get('/booking');
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it('should respond with status 401 if given token is not valid', async () => {
+    const token = faker.lorem.word();
+
+    const response = await server.get('/booking').set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  it('should respond with status 401 if there is no session for given token', async () => {
+    const userWithoutSession = await createUser();
+    const token = jwt.sign({ userId: userWithoutSession.id }, process.env.JWT_SECRET);
+
+    const response = await server.get('/booking').set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(httpStatus.UNAUTHORIZED);
+  });
+
+  describe('when token is valid', () => {
+    it('should respond with status 404 when user does not have booking', async () => {
+      const token = await generateValidToken();
+      const response = await server.get('/booking').set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(httpStatus.NOT_FOUND);
+    });
+
+    it('should respond with status 200 and with booking data', async () => {
+      const hotel = await createHotel();
+      const room = await createRoomWithHotelId(hotel.id);
+      const user = await createUser();
+      const token = await generateValidToken(user);
+
+      const booking = await createBooking(room.id, user.id);
+
+      const response = await server.get('/booking').set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(httpStatus.OK);
+      expect(response.body).toEqual({
+        id: booking.id,
+        Room: {
+          ...room,
+          createdAt: room.createdAt.toISOString(),
+          updatedAt: room.updatedAt.toISOString(),
+        },
       });
     });
   });
