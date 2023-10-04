@@ -8,4 +8,8 @@ async function getCountOfPeopleInRoom(roomId: number) {
   return prisma.booking.aggregate({ _count: { userId: true }, where: { roomId } });
 }
 
-export const bookingRepository = { createBooking, getCountOfPeopleInRoom };
+async function getRoomById(id: number) {
+  return prisma.room.findUnique({ where: { id } });
+}
+
+export const bookingRepository = { createBooking, getCountOfPeopleInRoom, getRoomById };

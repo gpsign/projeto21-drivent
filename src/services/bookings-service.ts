@@ -1,6 +1,5 @@
-import { roomService } from './rooms-service';
 import { bookingRepository } from '@/repositories';
-import { forbiddenRoomError } from '@/errors';
+import { forbiddenRoomError, notFoundError } from '@/errors';
 
 type CreateBookingInput = {
   roomId: number;
@@ -9,7 +8,7 @@ type CreateBookingInput = {
 
 async function createBooking(params: CreateBookingInput) {
   const { roomId, userId } = params;
-  const room = await roomService.findByIdOrThrow(roomId);
+  const room = await findRoomByIdOrThrow(roomId);
   const peopleCount = await bookingRepository.getCountOfPeopleInRoom(roomId);
 
   if (peopleCount._count.userId >= room.capacity) throw forbiddenRoomError();
@@ -19,4 +18,10 @@ async function createBooking(params: CreateBookingInput) {
   return { bookingId: createdBooking.id };
 }
 
-export const bookingService = { createBooking };
+async function findRoomByIdOrThrow(id: number) {
+  const room = await bookingRepository.getRoomById(id);
+  if (!room) throw notFoundError();
+  return room;
+}
+
+export const bookingService = { createBooking, findRoomByIdOrThrow };
