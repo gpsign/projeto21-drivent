@@ -75,3 +75,44 @@ describe('createBooking', () => {
     expect(createdBooking).toEqual({ bookingId: expect.any(Number) });
   });
 });
+
+describe('getUserBooking', () => {
+  it('should throw NotFoundError if user does not have a booking', async () => {
+    jest.spyOn(bookingRepository, 'getBookingByUserId').mockImplementationOnce(async () => {
+      return null;
+    });
+
+    const prom = bookingService.getUserBooking(1);
+
+    expect(prom).rejects.toEqual({ name: 'NotFoundError', message: 'No result for this search!' });
+  });
+
+  it('should return booking', async () => {
+    jest.spyOn(bookingRepository, 'getBookingByUserId').mockImplementationOnce(async () => {
+      return {
+        id: 1,
+        Room: {
+          id: 2,
+          name: '1020',
+          capacity: 3,
+          hotelId: 3,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      };
+    });
+
+    const booking = await bookingService.getUserBooking(1);
+    expect(booking).toEqual({
+      id: 1,
+      Room: {
+        id: 2,
+        name: '1020',
+        capacity: 3,
+        hotelId: 3,
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+      },
+    });
+  });
+});
