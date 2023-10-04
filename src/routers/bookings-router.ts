@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { authenticateToken, validateBody } from '@/middlewares';
+import { authenticateToken, validateBody, validateParams } from '@/middlewares';
 import { getBooking, postBooking, putBooking } from '@/controllers';
-import { bookingSchema } from '@/schemas';
+import { bookingParamsSchema, bookingSchema } from '@/schemas';
 
 const bookingsRouter = Router();
 
@@ -9,6 +9,6 @@ bookingsRouter
   .all('/*', authenticateToken)
   .post('/', validateBody(bookingSchema), postBooking)
   .get('/', getBooking)
-  .put('/:bookingId', putBooking);
+  .put('/:bookingId', validateBody(bookingSchema), validateParams(bookingParamsSchema), putBooking);
 
 export { bookingsRouter };
