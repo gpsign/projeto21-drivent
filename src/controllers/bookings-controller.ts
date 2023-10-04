@@ -10,5 +10,13 @@ export async function postBooking(req: AuthenticatedRequest, res: Response) {
 
   const result = await bookingService.createBooking({ ...roomParam, userId });
 
+  return res.status(httpStatus.CREATED).send(result);
+}
+
+export async function getBooking(req: AuthenticatedRequest, res: Response) {
+  const { userId } = req;
+
+  const result = await bookingService.getUserBooking(userId);
+
   return res.status(httpStatus.OK).send(result);
 }
